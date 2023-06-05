@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Param } from '@nestjs/common';
+import { Controller, Post, Body, Param, Get } from '@nestjs/common';
 import { ProductService } from './product.service';
 import {
   CreateProductDto,
@@ -23,5 +23,10 @@ export class ProductController {
     @Param() params: CreateProductParamsDto,
   ) {
     return this.productService.create_image(data, params);
+  }
+
+  @Get('listar_produtos/:cnpj/:sku/:sankhya')
+  listar() {
+
   }
 }

@@ -7,6 +7,7 @@ import ImageService from 'src/services/image.service';
 import DiretorioService from 'src/services/diretorio.service';
 import { CustomError } from 'src/common/custom.error';
 import { HubService } from 'src/services/hub.service';
+import axios from 'axios';
 
 @Injectable()
 export class ProductService {
@@ -76,15 +77,11 @@ export class ProductService {
           const SRC = data.images[index].src;
           const NAME = data.images[index].name;
 
-          try {
-            await this.imageService.download(SRC, `${params.cnpj}/${params.sku}/${NAME}`);
-            HUB_IMAGES.push({
-              src: `${data.HOSTURL}/${params.cnpj}/${params.sku}/${NAME}`,
-            });
-          } catch (error) {
-            throw new CustomError(`${error}`, HttpStatus.EXPECTATION_FAILED);
-          }
+          this.imageService.download(SRC, params, NAME);
 
+          HUB_IMAGES.push({
+              src: `${data.HOSTURL}/public/products/${params.cnpj}/${params.sku}/${NAME}`,
+            });
         }
       }
 
@@ -92,7 +89,30 @@ export class ProductService {
 
       return data;
     } catch (error) {
-      throw new CustomError(`${error}`, HttpStatus.INTERNAL_SERVER_ERROR);
+      // throw new CustomError(`${error}`, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async buscar_produtos() {
+    try {
+
+      var create = await axios.get(`https://lojadispan.thinklife.com.br/wp-json/wc/v3/products/${id}`,
+        {
+          headers: {
+            'Authorization': `Basic ${token}`
+          }
+        })
+
+        .then(function (res) {
+          return res.data
+        })
+        .catch(function (error) {
+          console.log(error)
+        })
+
+      return create
+    } catch (error) {
+      console.log(error);
     }
   }
 }

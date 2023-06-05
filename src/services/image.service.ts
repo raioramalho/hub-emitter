@@ -1,26 +1,22 @@
-import fetch from 'fetch';
 import * as fs from 'fs';
 import { Injectable } from '@nestjs/common';
-const base = '/var/www/html/public/produtos';
+import axios from 'axios';
+import { CreateProductParamsDto } from 'src/routes/product/dto/create-product.dto';
 
 @Injectable()
 export default class ImageService {
-  async download(url: string, path: string) {
-    fetch(url)
-      .then((response: any) => {
-        const dest = fs.createWriteStream(`${base}/${path}`);
-        response.body.pipe(dest);
+  async download(url: string, params: CreateProductParamsDto, NAME: string) {
+    const response = await axios.get(url, { responseType: 'stream' });
+    response.data.pipe(fs.createWriteStream(`/var/www/html/public/${Number(params.cnpj)}/${Number(params.sku)}/${NAME}`));
 
-        dest.on('finish', () => {
-          console.log('Download concluído!');
-          return true;
-        });
-
-        dest.on('error', (err) => {
-          console.error(`Ocorreu um erro durante o download: ${err.message}`);
-          throw new Error(err.message);
-        });
-
+    return new Promise<void>(async (resolve, reject) => {
+      await response.data.on('end', () => {
+        resolve();
+        console.log('ok')
       });
+      // response.data.on('error', (err) => {
+      //   reject(err);
+      // });
+    });
   }
 }

@@ -1,9 +1,8 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+// import { HttpStatus, Injectable } from '@nestjs/common';
 import axios from 'axios';
 import addOAuthInterceptor from 'axios-oauth-1.0a';
 import { CustomError } from 'src/common/custom.error';
 
-@Injectable()
 export class HubService {
   algorithm: any;
   key: string;
@@ -24,7 +23,7 @@ export class HubService {
         return response;
       })
       .catch((error) => {
-        throw new CustomError(`${error}`, HttpStatus.EXPECTATION_FAILED);
+        console.log(error);
       });
 
     return woo;
