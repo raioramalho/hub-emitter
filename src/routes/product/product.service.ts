@@ -13,13 +13,12 @@ export class ProductService {
   constructor(
     private readonly imageService: ImageService,
     private readonly diretorioService: DiretorioService,
-  ) {}
+  ) { }
   async create(data: CreateProductDto, params: CreateProductParamsDto) {
     try {
       const CONSUMERKEY = data.CONSUMERKEY;
       const CONSUMERSECRET = data.CONSUMERSECRET;
       const URLLOJAVIRTUAL = data.URLLOJAVIRTUAL;
-      const HUB_IMAGES = [];
 
       const hubService = new HubService(
         `HMAC-SHA1`,
@@ -27,56 +26,73 @@ export class ProductService {
         CONSUMERSECRET,
       );
 
-      if (params.sankhya === true) {
-        for (let index = 0; index < data?.images.length; index++) {
-          await this.diretorioService.criarPastaCnpj(params.cnpj);
-          await this.diretorioService.criarPastaProduto(
-            params.cnpj,
-            params.sku,
-          );
+      // if (params.sankhya === "true") {
+      //   for (let index = 0; index < data?.images.length; index++) {
 
-          const SRC = data.images[index].src;
-          const NAME = data.images[index].name;
+      //     await this.diretorioService.criarPastaProduto(
+      //       params.cnpj,
+      //       params.sku,
+      //     );
 
-          const DOWNLOAD = await this.imageService.baixarImagem(
-            params.cnpj,
-            params.sku,
-            SRC,
-            NAME,
-          );
+      //     const SRC = data.images[index].src;
+      //     const NAME = data.images[index].name;
+      //   }
 
-          if (!DOWNLOAD) {
-            HUB_IMAGES.push({
-              src: `${data.HOSTURL}/public/produtos/${params.cnpj}/${params.sku}/${NAME}`,
-            });
-          } else {
-            HUB_IMAGES.push({
-              src: '',
-            });
-          }
-        }
-        data.images = HUB_IMAGES;
-      }
+      // }
+
+      // data.images = HUB_IMAGES;
 
       delete data.CONSUMERKEY;
       delete data.CONSUMERSECRET;
       delete data.URLLOJAVIRTUAL;
       delete data.HOSTURL;
 
-      const emit: any = await hubService.post(
+      return await hubService.post(
         `${URLLOJAVIRTUAL}/wp-json/wc/v3/products`,
         data,
       );
-      if (!emit?.id) {
-        throw new CustomError(emit, HttpStatus.EXPECTATION_FAILED);
-      }
-
-      return data;
     } catch (error) {
       throw new CustomError(
         JSON.stringify(error),
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    }
+  }
+
+  async create_image(data: CreateProductDto, params: CreateProductParamsDto) {
+    try {
+      var HUB_IMAGES = [];
+
+      if (params.sankhya === 'true') {
+
+        await this.diretorioService.criarPastaCnpj(+params.cnpj);
+        await this.diretorioService.criarPastaProduto(
+          +params.cnpj,
+          +params.sku,
+        );
+
+        for (let index = 0; index < data.images.length; index++) {
+
+          const SRC = data.images[index].src;
+          const NAME = data.images[index].name;
+
+          try {
+            await this.imageService.download(SRC, `${params.cnpj}/${params.sku}/${NAME}`);
+            HUB_IMAGES.push({
+              src: `${data.HOSTURL}/${params.cnpj}/${params.sku}/${NAME}`,
+            });
+          } catch (error) {
+            throw new CustomError(`${error}`, HttpStatus.EXPECTATION_FAILED);
+          }
+
+        }
+      }
+
+      data.images = HUB_IMAGES;
+
+      return data;
+    } catch (error) {
+      throw new CustomError(`${error}`, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

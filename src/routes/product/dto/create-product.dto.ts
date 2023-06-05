@@ -45,6 +45,22 @@ export class CreateProductDto {
 
   @IsString()
   @IsOptional()
+  weight: string;
+
+  @IsOptional()
+  stock_quantity: any;
+
+  @IsOptional()
+  date_modified: any;
+
+  @IsOptional()
+  dimensions: any;
+
+  @IsOptional()
+  sku: any;
+
+  @IsString()
+  @IsOptional()
   type: string;
 
   @IsString()
@@ -66,8 +82,12 @@ export class CreateProductDto {
 }
 
 export class CreateProductParamsDto {
+  @IsOptional()
   cnpj: string;
+
+  @IsOptional()
   sku: string;
-  @Type(() => Boolean)
-  sankhya: boolean;
+
+  @IsOptional()
+  sankhya: string;
 }

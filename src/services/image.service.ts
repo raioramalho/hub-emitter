@@ -1,56 +1,26 @@
-import fs from 'fs';
-import https from 'https';
-import http from 'http';
+import fetch from 'fetch';
+import * as fs from 'fs';
 import { Injectable } from '@nestjs/common';
-
-const path = '/var/www/html/public/produtos';
+const base = '/var/www/html/public/produtos';
 
 @Injectable()
 export default class ImageService {
-  async baixarImagem(
-    cnpj: string,
-    sku: string,
-    src: string,
-    nomeDaImagem: string,
-  ): Promise<boolean> {
-    const check = src.split(':');
+  async download(url: string, path: string) {
+    fetch(url)
+      .then((response: any) => {
+        const dest = fs.createWriteStream(`${base}/${path}`);
+        response.body.pipe(dest);
 
-    if (check[0] === 'https') {
-      return new Promise<boolean>((resolve, reject) => {
-        const file = fs.createWriteStream(
-          `${path}/${cnpj}/${sku}/${nomeDaImagem}`,
-        );
-        const request = https.get(src, (response) => {
-          response.pipe(file);
-          file.on('finish', () => {
-            file.close();
-            console.log(`Imagem baixada [ ${nomeDaImagem} ]`);
-            resolve(true);
-          });
+        dest.on('finish', () => {
+          console.log('Download concluído!');
+          return true;
         });
-        request.on('error', (err) => {
-          console.error('Erro ao baixar a imagem!');
-          reject(false);
+
+        dest.on('error', (err) => {
+          console.error(`Ocorreu um erro durante o download: ${err.message}`);
+          throw new Error(err.message);
         });
+
       });
-    } else {
-      return new Promise<boolean>((resolve, reject) => {
-        const file = fs.createWriteStream(
-          `${path}/${cnpj}/${sku}/${nomeDaImagem}`,
-        );
-        const request = http.get(src, (response) => {
-          response.pipe(file);
-          file.on('finish', () => {
-            file.close();
-            console.log(`Imagem baixada [ ${nomeDaImagem} ]`);
-            resolve(true);
-          });
-        });
-        request.on('error', (err) => {
-          console.error('Erro ao baixar a imagem!');
-          reject(false);
-        });
-      });
-    }
   }
 }

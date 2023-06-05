@@ -1,44 +1,35 @@
-import { Injectable } from '@nestjs/common';
-import fs from 'fs';
+import { HttpStatus, Injectable } from '@nestjs/common';
+import * as fs from 'fs';
+import { CustomError } from 'src/common/custom.error';
+
 const path = '/var/www/html/public/produtos';
 
 @Injectable()
 export default class DiretorioService {
   buscar(endereco: any) {
     try {
-      const buscar = fs.existsSync(`${path}/${endereco}`);
-      if (!buscar) {
-        return false;
-      }
-      return true;
+      fs.existsSync(`${path}/${endereco}`);
     } catch (error) {
-      console.log(error);
-      throw new Error(`${error}`);
+      // throw new CustomError(`${error}`, HttpStatus.EXPECTATION_FAILED);
+      return false;
     }
   }
 
-  criarPastaCnpj(cnpj: any) {
+  async criarPastaCnpj(cnpj: number) {
     try {
-      fs.mkdir(`${path}/${cnpj}`, (error) => {
-        if (error) {
-          console.log(`Pasta do CNPJ: ${cnpj} - ERROR`);
-        } else {
-          console.log(`Pasta do CNPJ: ${cnpj} - SUCESSO`);
-        }
-      });
+      await fs.promises.mkdir(`${path}/${cnpj}`);
+      console.log('Pasta criada com sucesso!');
     } catch (error) {
-      console.log(error);
-      throw new Error(`${error}`);
+      // throw new CustomError(`${error}`, HttpStatus.EXPECTATION_FAILED);
     }
   }
 
-  criarPastaProduto(cnpj: any, sku: any) {
-    fs.mkdir(`${path}/${sku}`, (error) => {
-      if (error) {
-        console.log(`Pasta do PRODUTO: ${sku} - ERROR`);
-      } else {
-        console.log(`Pasta do PRODUTO: ${sku} - SUCESSO`);
-      }
-    });
+  async criarPastaProduto(cnpj: any, sku: any) {
+    try {
+      await fs.promises.mkdir(`${path}/${cnpj}/${sku}`);
+      console.log('Pasta criada com sucesso!');
+    } catch (error) {
+      // throw new CustomError(`${error}`, HttpStatus.EXPECTATION_FAILED);
+    }
   }
 }

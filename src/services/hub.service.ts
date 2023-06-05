@@ -18,7 +18,7 @@ export class HubService {
     const client = axios.create();
     addOAuthInterceptor(client, this);
 
-    await client
+    const woo = await client
       .post(URLLOJAVIRTUAL, data)
       .then((response) => {
         return response;
@@ -26,5 +26,7 @@ export class HubService {
       .catch((error) => {
         throw new CustomError(`${error}`, HttpStatus.EXPECTATION_FAILED);
       });
+
+    return woo;
   }
 }
